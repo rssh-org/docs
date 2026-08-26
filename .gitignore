@@ -2,6 +2,6 @@
 *.mp3
 *.srt
 *.txt
-/video/.thumbnails
-/video/.waveform-cache
+/video/*
+!/video/*.mp4
 IMPLEMENTATION_PLAN.md
