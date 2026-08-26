@@ -1,0 +1,7 @@
+.DS_Store
+*.mp3
+*.srt
+*.txt
+/video/.thumbnails
+/video/.waveform-cache
+IMPLEMENTATION_PLAN.md
