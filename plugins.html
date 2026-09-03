@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Plugin Development Guide - RSSH</title>
+    <meta name="description" content="How to write an rssh plugin: package layout, manifest, the exec bridge API, limits, and the security model."/>
+    <meta name="theme-color" content="#0b0f16"/>
+    <link rel="canonical" href="https://rssh.ofcoder.com/plugins.html"/>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0b0f16;
+            --surface: #121a27;
+            --line: #273247;
+            --text: #d9e0ed;
+            --muted: #92a0b6;
+            --heading: #f6f8fc;
+            --accent: #6f8cff;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(circle at top right, rgba(74, 108, 247, 0.14), transparent 32rem),
+                var(--bg);
+            color: var(--text);
+            font: 16px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        main {
+            width: min(820px, calc(100% - 32px));
+            margin: 48px auto;
+            padding: clamp(24px, 5vw, 52px);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: rgba(18, 26, 39, 0.92);
+        }
+
+        h1, h2, h3 { color: var(--heading); line-height: 1.25; }
+        h1 { margin: 0 0 8px; font-size: clamp(1.8rem, 5vw, 2.6rem); }
+        h2 { margin: 40px 0 10px; font-size: 1.2rem; }
+        h3 { margin: 24px 0 8px; font-size: 1.02rem; }
+        p, ul { margin: 10px 0; }
+        ul { padding-left: 22px; }
+        li { margin: 4px 0; }
+        a { color: var(--accent); }
+        .meta { color: var(--muted); }
+        .language-divider { margin: 52px 0; border: 0; border-top: 1px solid var(--line); }
+        .back { display: inline-block; margin-bottom: 28px; text-decoration: none; }
+
+        pre {
+            margin: 12px 0;
+            padding: 14px 16px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: rgba(11, 15, 22, 0.75);
+            overflow-x: auto;
+            font: 13px/1.6 var(--mono);
+        }
+        code { font-family: var(--mono); font-size: 0.9em; }
+
+        table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
+        th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+        th { color: var(--heading); background: rgba(11, 15, 22, 0.6); }
+        td code, th code { white-space: nowrap; }
+    </style>
+</head>
+<body>
+<main>
+    <a class="back" href="/">&larr; RSSH</a>
+
+    <section lang="en">
+        <h1>Plugin Development Guide</h1>
+        <p class="meta">API version 1</p>
+
+        <h2>What a plugin is</h2>
+        <p>An rssh plugin is a zip: a <code>manifest.json</code> and one self-contained
+        <code>index.html</code>. rssh loads it into a sandboxed iframe docked to one of two
+        regions around your terminal — the <strong>side</strong> column or the
+        <strong>strip</strong> bar.</p>
+        <p>A plugin has exactly one capability: <strong>exec</strong> — run a command on the
+        machine of the current tab and get <code>{stdout, stderr, exitCode}</code> back.
+        Monitoring dashboards, service controls, log viewers — everything is built from that.</p>
+
+        <h2>Package layout</h2>
+<pre>my-plugin.zip
+├── manifest.json     required, at the zip root
+├── index.html        required, the whole UI
+└── assets/**         optional</pre>
+
+        <h2>manifest.json</h2>
+<pre>{
+  "id": "hello-world",
+  "name": "Hello World",
+  "version": "1.0.0",
+  "description": "Runs one command and shows the output",
+  "author": "you",
+  "area": "side",
+  "api": 1
+}</pre>
+        <table>
+            <tr><th>Field</th><th>Notes</th></tr>
+            <tr><td><code>id</code></td><td>Slug <code>^[a-z0-9-]{2,64}$</code>. Doubles as the
+                install directory; reinstalling the same id upgrades in place.</td></tr>
+            <tr><td><code>name</code> / <code>version</code> / <code>description</code> / <code>author</code></td>
+                <td>Shown in the plugin manager.</td></tr>
+            <tr><td><code>area</code></td><td><code>"side"</code> or <code>"strip"</code> — which
+                region the plugin docks to. The backend rejects a zip installed from the other
+                region's button.</td></tr>
+            <tr><td><code>api</code></td><td>Must be <code>1</code>.</td></tr>
+        </table>
+
+        <h2>The bridge (API v1)</h2>
+        <p>The iframe talks to rssh over <code>postMessage</code>. This is the whole protocol:</p>
+        <table>
+            <tr><th>Direction</th><th>Message</th><th>Meaning</th></tr>
+            <tr><td>plugin &rarr; host</td><td><code>{v:1, id, cmd:"exec", payload:{command, timeoutMs?}}</code></td>
+                <td>Run a command.</td></tr>
+            <tr><td>host &rarr; plugin</td><td><code>{v:1, id, ok:true, result:{stdout, stderr, exitCode}}</code></td>
+                <td>Exec finished.</td></tr>
+            <tr><td>host &rarr; plugin</td><td><code>{v:1, id, ok:false, error:{code, message}}</code></td>
+                <td>Exec failed.</td></tr>
+            <tr><td>plugin &rarr; host</td><td><code>{v:1, id, cmd:"size", payload:{width?, height?}}</code></td>
+                <td>Report your natural size (notification, no reply).</td></tr>
+            <tr><td>host &rarr; plugin</td><td><code>{v:1, evt:"hello", payload:{apiVersion, theme}}</code></td>
+                <td>Fired once on load.</td></tr>
+            <tr><td>host &rarr; plugin</td><td><code>{v:1, evt:"visibility", payload:{visible}}</code></td>
+                <td>Your tab switched away / came back.</td></tr>
+        </table>
+
+        <p>A minimal client is ~30 lines of vanilla JS — no SDK required:</p>
+<pre>let seq = 0;
+const pending = new Map();
+
+window.addEventListener("message", (e) =&gt; {
+  const m = e.data;
+  if (!m || m.v !== 1) return;
+  if (m.evt === "hello") applyTheme(m.payload.theme);
+  if (m.evt === "visibility") setVisible(m.payload.visible);
+  if (m.id &amp;&amp; pending.has(m.id)) {
+    const {resolve, reject} = pending.get(m.id);
+    pending.delete(m.id);
+    m.ok ? resolve(m.result) : reject(m.error);
+  }
+});
+
+function exec(command, timeoutMs) {
+  const id = "q" + (++seq);
+  return new Promise((resolve, reject) =&gt; {
+    pending.set(id, {resolve, reject});
+    parent.postMessage({v: 1, id, cmd: "exec",
+                        payload: {command, timeoutMs}}, "*");
+  });
+}
+
+function applyTheme(tokens) {  // match rssh's look in both themes
+  for (const [k, v] of Object.entries(tokens ?? {}))
+    document.documentElement.style.setProperty(k, v);
+}</pre>
+        <p><code>exec()</code> resolves with <code>{stdout, stderr, exitCode}</code> or rejects
+        with <code>{code, message}</code>. Error codes you will actually see:
+        <code>plugin_no_exec</code> (the tab has no exec channel — telnet/serial),
+        <code>plugin_exec_timeout</code>, <code>plugin_busy</code>.</p>
+
+        <h3>Events</h3>
+        <ul>
+            <li><code>hello</code> — arrives once after load. <code>theme</code> carries rssh's
+                design tokens (<code>--bg</code>, <code>--text</code>, <code>--accent</code>,
+                …); apply them as CSS custom properties and your UI matches the app for free.</li>
+            <li><code>visibility</code> — the iframe is keep-alive across tab switches, so this
+                is how you learn you went to the background. <strong>Pause polling while
+                hidden.</strong></li>
+        </ul>
+
+        <h3>Sizing your panel</h3>
+        <p>The sandbox stops rssh from measuring iframe content — only you know your natural
+        size. Side plugins report their height, strip plugins their width:</p>
+<pre>parent.postMessage({v: 1, id: "s1", cmd: "size",
+                    payload: {height: 140}}, "*");</pre>
+
+        <h2>Limits</h2>
+        <table>
+            <tr><th>What</th><th>Limit</th></tr>
+            <tr><td>Command length</td><td>4 KB</td></tr>
+            <tr><td>Concurrent execs per plugin</td><td>4 (excess gets <code>plugin_busy</code>)</td></tr>
+            <tr><td>Timeout</td><td>clamped to 1–60 s, default 10 s</td></tr>
+            <tr><td>stdout / stderr</td><td>256 KB each</td></tr>
+            <tr><td>Zip</td><td>10 MB, ≤ 500 files, no symlinks / <code>..</code> / absolute paths</td></tr>
+        </table>
+
+        <h2>Security model</h2>
+        <ul>
+            <li>The iframe runs <code>sandbox="allow-scripts"</code> — an opaque origin. It
+                cannot read rssh's DOM or storage and cannot invoke Tauri commands.</li>
+            <li>The host brokers every exec and never hands the plugin a session id.</li>
+            <li>Commands run as your SSH user, on the machine the current tab is connected to.
+                <strong>Installing a plugin means trusting its commands</strong> — the same
+                trust as installing a shell script. v1 has no permission matrix or signatures.</li>
+            <li>The sandbox has no localStorage. Want config persistence? Store it on the
+                server — <code>echo &gt; ~/.config/my-plugin.json</code> is one exec away.</li>
+        </ul>
+
+        <h2>Where commands run</h2>
+        <table>
+            <tr><th>Tab</th><th>exec runs on</th></tr>
+            <tr><td>SSH</td><td>the remote machine, over your connection</td></tr>
+            <tr><td>Local shell</td><td>this machine (a fresh child process per call)</td></tr>
+            <tr><td>Telnet / serial</td><td>no exec — <code>plugin_no_exec</code></td></tr>
+        </table>
+        <p>The plugin never branches on this. The same zip monitors a remote Linux box from an
+        SSH tab and your laptop from a local shell tab.</p>
+
+        <h2>Case study: monitor-plugin</h2>
+        <p><a href="https://github.com/rssh-org/monitor-plugin" target="_blank" rel="noopener">github.com/rssh-org/monitor-plugin</a>
+        is the reference implementation — two plugins sharing one SDK:</p>
+<pre>sdk/            shared, dependency-free library
+  host.ts       bridge client: exec / onVisibility / autoSize / theme
+  metrics.ts    probe commands + /proc &amp; macOS parsers (pure, tested)
+  poller.ts     poll loop: pause-on-hidden, backoff-on-error
+  ring.ts       fixed-length sparkline buffer
+plugins/
+  icons-monitor/   side region: canvas sparklines + disk bars
+  text-monitor/    strip region: one monospace text line</pre>
+        <ul>
+            <li><strong>One exec per poll.</strong> Five probes (<code>/proc/stat</code>,
+                <code>/proc/meminfo</code>, <code>/proc/loadavg</code>, <code>/proc/net/dev</code>,
+                <code>df -Plk</code>) joined into a single shell line with <code>__RSSH_*__</code>
+                markers, parsed client-side — one round-trip.</li>
+            <li><strong>Platform probe.</strong> The first poll runs <code>uname -s</code>:
+                Linux reads <code>/proc</code>, macOS falls back to
+                <code>vm_stat</code>/<code>sysctl</code>/<code>netstat</code>, anything else
+                reports unsupported.</li>
+            <li><strong>Counter diffing.</strong> CPU and network counters are cumulative since
+                boot; the poller keeps the previous snapshot and diffs.</li>
+            <li><strong>Lifecycle discipline.</strong> 3 s poll, stops on
+                <code>visibility: false</code>, backs off on error.</li>
+            <li><strong>Single-file packaging.</strong> Vite + <code>vite-plugin-singlefile</code>
+                inlines everything into <code>index.html</code>;
+                <code>scripts/package.mjs</code> zips it with the manifest.</li>
+        </ul>
+
+        <h2>Packaging and installing</h2>
+        <ul>
+            <li>Build to a single <code>index.html</code> (vite-plugin-singlefile, or just write
+                it by hand). The zip should have no cross-file path dependencies.</li>
+            <li>Zip <code>manifest.json</code> + <code>index.html</code> (+ optional
+                <code>assets/</code>).</li>
+            <li>Install: Settings &rarr; Plugins &rarr; the install button of the region your
+                <code>area</code> declares. Reinstalling the same id upgrades in place.</li>
+        </ul>
+    </section>
+
+    <hr class="language-divider"/>
+
+    <section lang="zh">
+        <h1>插件开发指南</h1>
+        <p class="meta">API 版本 1</p>
+
+        <h2>插件是什么</h2>
+        <p>rssh 插件就是一个 zip：一份 <code>manifest.json</code> 加一个自包含的
+        <code>index.html</code>。rssh 把它装进沙箱 iframe，停靠在终端周围两个区域之一 ——
+        <strong>侧栏</strong>（side column）或<strong>横条</strong>（strip bar）。</p>
+        <p>插件只有一项能力：<strong>exec</strong> —— 在当前标签页连接的机器上跑一条命令，
+        拿回 <code>{stdout, stderr, exitCode}</code>。监控面板、服务控制、日志查看器，
+        全都由它长出来。</p>
+
+        <h2>包结构</h2>
+<pre>my-plugin.zip
+├── manifest.json     必需，zip 根目录
+├── index.html        必需，整个 UI
+└── assets/**         可选</pre>
+
+        <h2>manifest.json</h2>
+<pre>{
+  "id": "hello-world",
+  "name": "Hello World",
+  "version": "1.0.0",
+  "description": "Runs one command and shows the output",
+  "author": "you",
+  "area": "side",
+  "api": 1
+}</pre>
+        <table>
+            <tr><th>字段</th><th>说明</th></tr>
+            <tr><td><code>id</code></td><td>slug <code>^[a-z0-9-]{2,64}$</code>，同时是安装目录名；
+                重复安装同 id = 原地升级。</td></tr>
+            <tr><td><code>name</code> / <code>version</code> / <code>description</code> / <code>author</code></td>
+                <td>展示在插件管理页。</td></tr>
+            <tr><td><code>area</code></td><td><code>"side"</code> 或 <code>"strip"</code>，声明停靠区域；
+                从另一个区域的安装入口装会被后端拒绝。</td></tr>
+            <tr><td><code>api</code></td><td>必须是 <code>1</code>。</td></tr>
+        </table>
+
+        <h2>桥协议（API v1）</h2>
+        <p>iframe 与 rssh 之间走 <code>postMessage</code>。协议全部内容如下：</p>
+        <table>
+            <tr><th>方向</th><th>消息</th><th>含义</th></tr>
+            <tr><td>插件 &rarr; 宿主</td><td><code>{v:1, id, cmd:"exec", payload:{command, timeoutMs?}}</code></td>
+                <td>跑一条命令。</td></tr>
+            <tr><td>宿主 &rarr; 插件</td><td><code>{v:1, id, ok:true, result:{stdout, stderr, exitCode}}</code></td>
+                <td>执行完成。</td></tr>
+            <tr><td>宿主 &rarr; 插件</td><td><code>{v:1, id, ok:false, error:{code, message}}</code></td>
+                <td>执行失败。</td></tr>
+            <tr><td>插件 &rarr; 宿主</td><td><code>{v:1, id, cmd:"size", payload:{width?, height?}}</code></td>
+                <td>上报自身尺寸（通知，无回复）。</td></tr>
+            <tr><td>宿主 &rarr; 插件</td><td><code>{v:1, evt:"hello", payload:{apiVersion, theme}}</code></td>
+                <td>加载后发一次。</td></tr>
+            <tr><td>宿主 &rarr; 插件</td><td><code>{v:1, evt:"visibility", payload:{visible}}</code></td>
+                <td>所在标签页切走 / 切回。</td></tr>
+        </table>
+
+        <p>一个最小客户端 30 行原生 JS 就够，不需要 SDK：</p>
+<pre>let seq = 0;
+const pending = new Map();
+
+window.addEventListener("message", (e) =&gt; {
+  const m = e.data;
+  if (!m || m.v !== 1) return;
+  if (m.evt === "hello") applyTheme(m.payload.theme);
+  if (m.evt === "visibility") setVisible(m.payload.visible);
+  if (m.id &amp;&amp; pending.has(m.id)) {
+    const {resolve, reject} = pending.get(m.id);
+    pending.delete(m.id);
+    m.ok ? resolve(m.result) : reject(m.error);
+  }
+});
+
+function exec(command, timeoutMs) {
+  const id = "q" + (++seq);
+  return new Promise((resolve, reject) =&gt; {
+    pending.set(id, {resolve, reject});
+    parent.postMessage({v: 1, id, cmd: "exec",
+                        payload: {command, timeoutMs}}, "*");
+  });
+}
+
+function applyTheme(tokens) {  // 跟随 rssh 的明暗主题
+  for (const [k, v] of Object.entries(tokens ?? {}))
+    document.documentElement.style.setProperty(k, v);
+}</pre>
+        <p><code>exec()</code> 成功返回 <code>{stdout, stderr, exitCode}</code>，失败抛
+        <code>{code, message}</code>。常见的错误码：<code>plugin_no_exec</code>
+       （该类标签页没有 exec 通道，如 telnet/serial）、<code>plugin_exec_timeout</code>、
+        <code>plugin_busy</code>。</p>
+
+        <h3>事件</h3>
+        <ul>
+            <li><code>hello</code> —— 加载后发一次。<code>theme</code> 携带 rssh 的设计令牌
+                （<code>--bg</code>、<code>--text</code>、<code>--accent</code> 等），按 CSS
+                自定义属性套上，UI 就自动跟随应用主题。</li>
+            <li><code>visibility</code> —— iframe 在标签页切换间保活，靠这个事件得知自己
+                进了后台。<strong>不可见时请停止轮询。</strong></li>
+        </ul>
+
+        <h3>上报尺寸</h3>
+        <p>沙箱导致宿主量不到 iframe 内容 —— 只有你自己知道自然尺寸。侧栏插件报高度、
+        横条插件报宽度：</p>
+<pre>parent.postMessage({v: 1, id: "s1", cmd: "size",
+                    payload: {height: 140}}, "*");</pre>
+
+        <h2>限制</h2>
+        <table>
+            <tr><th>项目</th><th>上限</th></tr>
+            <tr><td>命令长度</td><td>4 KB</td></tr>
+            <tr><td>单插件并发 exec</td><td>4（超出收到 <code>plugin_busy</code>）</td></tr>
+            <tr><td>超时</td><td>钳制在 1–60 秒，默认 10 秒</td></tr>
+            <tr><td>stdout / stderr</td><td>各 256 KB</td></tr>
+            <tr><td>zip 包</td><td>10 MB、≤ 500 个文件、拒绝符号链接 / <code>..</code> / 绝对路径</td></tr>
+        </table>
+
+        <h2>安全模型</h2>
+        <ul>
+            <li>iframe 以 <code>sandbox="allow-scripts"</code> 运行 —— 不透明 origin，
+                读不到 rssh 的 DOM 和存储，调不了 Tauri 命令。</li>
+            <li>每次 exec 都由宿主代理，插件永远拿不到 session id。</li>
+            <li>命令以你的 SSH 用户身份、在当前标签页连接的机器上执行。
+                <strong>装一个插件 = 信任它跑的命令</strong>，和装一个 shell 脚本同一级别的信任。
+                v1 没有权限矩阵、没有签名。</li>
+            <li>沙箱里没有 localStorage。需要持久化配置？存到服务器上 ——
+                <code>echo &gt; ~/.config/my-plugin.json</code> 一次 exec 的事。</li>
+        </ul>
+
+        <h2>命令在哪台机器上跑</h2>
+        <table>
+            <tr><th>标签页</th><th>exec 执行位置</th></tr>
+            <tr><td>SSH</td><td>远端机器，走当前连接</td></tr>
+            <tr><td>本地 shell</td><td>本机（每次调用一个全新子进程）</td></tr>
+            <tr><td>Telnet / serial</td><td>没有 exec —— <code>plugin_no_exec</code></td></tr>
+        </table>
+        <p>插件代码对此零分支：同一个 zip，在 SSH 标签页监控远端 Linux，在本地 shell
+        标签页监控你手上的这台机器。</p>
+
+        <h2>案例：monitor-plugin</h2>
+        <p><a href="https://github.com/rssh-org/monitor-plugin" target="_blank" rel="noopener">github.com/rssh-org/monitor-plugin</a>
+        是参考实现 —— 两个插件共享一套 SDK：</p>
+<pre>sdk/            共享零依赖库
+  host.ts       桥客户端：exec / onVisibility / autoSize / theme
+  metrics.ts    探测命令 + /proc 与 macOS 解析器（纯函数，带测试）
+  poller.ts     轮询循环：不可见即停、出错退避
+  ring.ts       定长火花线缓冲
+plugins/
+  icons-monitor/   侧栏区：canvas 火花线 + 磁盘条
+  text-monitor/    横条区：一行等宽文字</pre>
+        <ul>
+            <li><strong>每次轮询只花一次 exec。</strong>五个探测（<code>/proc/stat</code>、
+                <code>/proc/meminfo</code>、<code>/proc/loadavg</code>、<code>/proc/net/dev</code>、
+                <code>df -Plk</code>）用 <code>__RSSH_*__</code> 标记拼成一条 shell 命令，
+                客户端解析 —— 一个来回。</li>
+            <li><strong>平台探测。</strong>首次轮询先跑 <code>uname -s</code>：Linux 读
+                <code>/proc</code>，macOS 退到 <code>vm_stat</code>/<code>sysctl</code>/<code>netstat</code>，
+                其余平台显示不支持。</li>
+            <li><strong>计数器差分。</strong>CPU 和网络计数器是开机以来的累计值，
+                轮询器保存上一拍快照做差分。</li>
+            <li><strong>生命周期纪律。</strong>3 秒一轮；<code>visibility: false</code> 即停；
+                出错退避。</li>
+            <li><strong>单文件打包。</strong>Vite + <code>vite-plugin-singlefile</code>
+                把所有产物内联进 <code>index.html</code>，<code>scripts/package.mjs</code>
+                连同 manifest 一起打成 zip。</li>
+        </ul>
+
+        <h2>打包与安装</h2>
+        <ul>
+            <li>构建成单个 <code>index.html</code>（vite-plugin-singlefile，或直接手写）。
+                zip 内不要有跨文件路径依赖。</li>
+            <li>把 <code>manifest.json</code> + <code>index.html</code>（可加
+                <code>assets/</code>）打成 zip。</li>
+            <li>安装：设置 &rarr; 插件 &rarr; 点与 <code>area</code> 对应区域的安装按钮。
+                重复安装同 id 为原地升级。</li>
+        </ul>
+    </section>
+</main>
+</body>
+</html>
