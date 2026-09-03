@@ -243,6 +243,23 @@ plugins/
                 <code>scripts/package.mjs</code> zips it with the manifest.</li>
         </ul>
 
+        <h2>Case study: rssh-plugin-mascot</h2>
+        <p><a href="https://github.com/rssh-org/rssh-plugin-mascot" target="_blank" rel="noopener">github.com/rssh-org/rssh-plugin-mascot</a>
+        is the other end of the spectrum — a purely visual strip plugin that
+        never calls exec:</p>
+        <ul>
+            <li><strong>One hand-written <code>index.html</code>.</strong> No build step, no SDK,
+                no dependencies — a canvas pixel cat, a small behavior state machine, and ~30
+                lines of bridge code.</li>
+            <li><strong>Theme and lifecycle only.</strong> It consumes <code>hello</code>
+                (recolors the cat from the theme tokens) and <code>visibility</code> (stops all
+                timers when its tab is hidden); the only message it sends is <code>size</code>.</li>
+            <li><strong>Content-driven size.</strong> The body is shrink-wrapped
+                (<code>width: fit-content</code>) and a <code>ResizeObserver</code> reports the
+                measured width — the segment breathes with the speech text and collapses after
+                it fades.</li>
+        </ul>
+
         <h2>Packaging and installing</h2>
         <ul>
             <li>Build to a single <code>index.html</code> (vite-plugin-singlefile, or just write
@@ -420,6 +437,19 @@ plugins/
             <li><strong>单文件打包。</strong>Vite + <code>vite-plugin-singlefile</code>
                 把所有产物内联进 <code>index.html</code>，<code>scripts/package.mjs</code>
                 连同 manifest 一起打成 zip。</li>
+        </ul>
+
+        <h2>案例：rssh-plugin-mascot</h2>
+        <p><a href="https://github.com/rssh-org/rssh-plugin-mascot" target="_blank" rel="noopener">github.com/rssh-org/rssh-plugin-mascot</a>
+        是另一个极端 —— 纯视觉横条插件，从不调用 exec：</p>
+        <ul>
+            <li><strong>一个手写的 <code>index.html</code>。</strong>没有构建、没有 SDK、
+                没有依赖 —— 一只 canvas 像素猫、一个小型行为状态机、约 30 行桥代码。</li>
+            <li><strong>只用主题和生命周期。</strong>消费 <code>hello</code>（按主题色重绘猫）
+                与 <code>visibility</code>（所在标签页隐藏即停掉全部定时器）；
+                对外只发 <code>size</code> 一条消息。</li>
+            <li><strong>量内容报尺寸。</strong>body 收缩包裹（<code>width: fit-content</code>），
+                <code>ResizeObserver</code> 上报实测宽度 —— 段宽随台词呼吸，淡出后收回。</li>
         </ul>
 
         <h2>打包与安装</h2>
