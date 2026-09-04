@@ -1,6 +1,6 @@
 # An SSH Client Built to Kill Every Pain Point
 
-The SSH protocol turned thirty last year. The tooling around it still behaves like it's 1999: a connection list, a byte stream, and your eyeballs. [rssh](https://github.com/shihuili1218/rssh) is an open-source SSH client (Rust + Tauri, MIT, macOS/Windows/Linux/Android/iOS plus a JetBrains plugin) that started from a pain-point list rather than a feature list. Every design decision below exists because something in daily server work hurt, and each fix is applied at the layer that actually caused the pain — not bolted on top with a settings toggle.
+The SSH protocol turned thirty last year. The tooling around it still behaves like it's 1999: a connection list, a byte stream, and your eyeballs. [rssh](https://github.com/rssh-org/rssh) is an open-source SSH client (Rust + Tauri, MIT, macOS/Windows/Linux/Android/iOS plus a JetBrains plugin) that started from a pain-point list rather than a feature list. Every design decision below exists because something in daily server work hurt, and each fix is applied at the layer that actually caused the pain — not bolted on top with a settings toggle.
 
 Six pain points, six fixes.
 
@@ -114,4 +114,4 @@ None of these are features you'd find on a comparison chart. Read them again and
 - The AI gets **the same objects the human sees**, behind approval walls enforced in code — the human goes from porter to adjudicator.
 - Ephemeral infrastructure becomes **discovered identities**, not hand-maintained addresses.
 
-rssh is open source (MIT), built in Rust with Tauri and xterm.js, speaks SSH via `russh`, and runs on macOS, Windows, Linux, Android and iOS with a JetBrains plugin sharing the same data directory. If any of the six pains sounded like your Tuesday, [the downloads are here](https://github.com/shihuili1218/rssh/releases/latest).
+rssh is open source (MIT), built in Rust with Tauri and xterm.js, speaks SSH via `russh`, and runs on macOS, Windows, Linux, Android and iOS with a JetBrains plugin sharing the same data directory. If any of the six pains sounded like your Tuesday, [the downloads are here](https://github.com/rssh-org/rssh/releases/latest).

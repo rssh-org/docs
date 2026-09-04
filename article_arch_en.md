@@ -1,6 +1,6 @@
 # Inside RSSH: one Rust crate, three binaries, and the Tauri lessons along the way
 
-[RSSH](https://github.com/shihuili1218/rssh) is a cross-platform SSH client — desktop GUI, a first-class CLI, mobile, and an in-IDE mode — with an AI ops-diagnosis assistant that keeps the human in the loop. It's built in Rust on top of Tauri 2. This is a writeup of how it's structured, which crates we leaned on (and what they cost us), and the Tauri sharp edges we hit shipping to macOS, Windows, Linux, Android and JetBrains.
+[RSSH](https://github.com/rssh-org/rssh) is a cross-platform SSH client — desktop GUI, a first-class CLI, mobile, and an in-IDE mode — with an AI ops-diagnosis assistant that keeps the human in the loop. It's built in Rust on top of Tauri 2. This is a writeup of how it's structured, which crates we leaned on (and what they cost us), and the Tauri sharp edges we hit shipping to macOS, Windows, Linux, Android and JetBrains.
 
 ## What RSSH does
 
@@ -115,4 +115,4 @@ One design stance that paid off: when the keychain backend is marked as availabl
 
 ---
 
-RSSH is MIT-licensed and the issue tracker is open. If pure-Rust SSH, Tauri across five targets, or local-first AI ops tooling is your thing, contributions and bug reports are welcome: <https://github.com/shihuili1218/rssh>.
+RSSH is MIT-licensed and the issue tracker is open. If pure-Rust SSH, Tauri across five targets, or local-first AI ops tooling is your thing, contributions and bug reports are welcome: <https://github.com/rssh-org/rssh>.

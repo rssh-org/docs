@@ -172,7 +172,7 @@ rssh config webdav pull    # 从 WebDAV 拉取
 
 ## 下载
 
-[Releases](https://github.com/shihuili1218/rssh/releases) 提供 macOS（Intel + Apple Silicon）、Windows、Linux（deb/rpm/AppImage）、Android 安装包。
+[Releases](https://github.com/rssh-org/rssh/releases) 提供 macOS（Intel + Apple Silicon）、Windows、Linux（deb/rpm/AppImage）、Android 安装包。
 
 MIT 协议，无登录，无订阅，无广告，无遥测。
 

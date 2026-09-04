@@ -1,6 +1,6 @@
 # rssh docs
 
-Site and content for [rssh](https://github.com/shihuili1218/rssh), served by GitHub Pages at <https://rssh.ofcoder.com>.
+Site and content for [rssh](https://github.com/rssh-org/rssh), served by GitHub Pages at <https://rssh.ofcoder.com>.
 
 - Repo root **is** the site root (Pages source: `main` branch, `/` path).
 - Content migrated from `docs/` in the main rssh repo, plus the finished video cuts in `video/*.mp4`.

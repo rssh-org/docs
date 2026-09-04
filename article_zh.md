@@ -151,7 +151,7 @@ rssh 直接读写标准的 `~/.ssh/known_hosts` 文件。`ssh-keygen -R <host>` 
 
 ## 下载
 
-[Releases](https://github.com/shihuili1218/rssh/releases) 页面提供 macOS / Windows / Linux / Android 安装包。
+[Releases](https://github.com/rssh-org/rssh/releases) 页面提供 macOS / Windows / Linux / Android 安装包。
 
 MIT 协议，无登录，无订阅，无广告，无遥测开关——因为压根没有遥测。
 

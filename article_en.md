@@ -153,7 +153,7 @@ Not given top billing, but each one pulls its weight:
 
 ## Download
 
-The [Releases](https://github.com/shihuili1218/rssh/releases) page provides macOS / Windows / Linux / Android installers.
+The [Releases](https://github.com/rssh-org/rssh/releases) page provides macOS / Windows / Linux / Android installers.
 
 MIT license. No login, no subscription, no ads, no telemetry toggle — because there's no telemetry at all.
 
