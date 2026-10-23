@@ -145,13 +145,15 @@ rssh 直接读写标准的 `~/.ssh/known_hosts` 文件。`ssh-keygen -R <host>` 
 - SFTP 浏览：Cmd+O 唤起，拖拽上传下载
 - 命令片段：Cmd+S 唤起可复用命令库
 - 端口转发：本地 / 远程，实时流量统计
-- 跨全平台：macOS（Intel + Apple Silicon）、Windows、Linux（deb/rpm/AppImage）、Android
+- 跨平台：macOS（Intel + Apple Silicon）、Windows、Linux（deb/rpm/AppImage）、Android、iOS、鸿蒙手机和鸿蒙电脑
 
 ---
 
 ## 下载
 
 [Releases](https://github.com/rssh-org/rssh/releases) 页面提供 macOS / Windows / Linux / Android 安装包。
+
+iOS 版通过 App Store 安装。鸿蒙手机端和电脑端均已上架[华为应用市场](https://appgallery.huawei.com/app/detail?id=com.rssh.app&channelId=SHARE&source=appshare)：在对应设备的应用市场搜索 **RSSH**，即可安装适合该设备的版本。各平台安装入口见[官网](https://rssh.ofcoder.com/#download)。
 
 MIT 协议，无登录，无订阅，无广告，无遥测开关——因为压根没有遥测。
 

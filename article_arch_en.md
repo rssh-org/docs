@@ -1,6 +1,6 @@
 # Inside RSSH: one Rust crate, three binaries, and the Tauri lessons along the way
 
-[RSSH](https://github.com/rssh-org/rssh) is a cross-platform SSH client — desktop GUI, a first-class CLI, mobile, and an in-IDE mode — with an AI ops-diagnosis assistant that keeps the human in the loop. It's built in Rust on top of Tauri 2. This is a writeup of how it's structured, which crates we leaned on (and what they cost us), and the Tauri sharp edges we hit shipping to macOS, Windows, Linux, Android and JetBrains.
+[RSSH](https://github.com/rssh-org/rssh) is a cross-platform SSH client — desktop GUI, a first-class CLI, mobile, and an in-IDE mode — with an AI ops-diagnosis assistant that keeps the human in the loop. It's built in Rust on top of Tauri 2. This is a writeup of how it's structured, which crates we leaned on (and what they cost us), and the Tauri sharp edges we hit shipping to macOS, Windows, Linux, Android, iOS, HarmonyOS and JetBrains. The HarmonyOS phone and PC editions are available in [Huawei AppGallery](https://appgallery.huawei.com/app/detail?id=com.rssh.app&channelId=SHARE&source=appshare); search for **RSSH** on your device.
 
 ## What RSSH does
 
@@ -17,14 +17,14 @@ Every command and its output become a block with a color-coded left edge. In a t
 
 ## One crate, three binaries
 
-The whole backend is a single library crate that compiles into three feature-gated binaries plus a linkable lib for mobile:
+The whole backend is a single library crate used by three binaries and linked into the Android, iOS, and HarmonyOS apps:
 
 ```toml
 [lib]
 name = "rssh_lib"
 crate-type = ["staticlib", "cdylib", "lib"]
 
-[[bin]]                       # the Tauri GUI app (desktop + mobile)
+[[bin]]                       # the macOS / Windows / Linux Tauri GUI app
 name = "rssh"
 path = "src/main.rs"
 
@@ -51,14 +51,16 @@ It peeks at each incoming request without consuming it and decides between a Web
 
 The frontend (Svelte) reaches the core through **143 `#[tauri::command]` handlers** — that's the entire GUI↔Rust boundary. By line count the modules break down as `ai/` (~9.4k, the diagnosis engine and its redaction/validation layers), `ssh/` (~4k), `commands/` (~3.6k), `db/` (~2.8k), then `sync/`, `secret/`, `terminal/` and `migration/`.
 
-Mobile reuses everything. The desktop `main` and the Android/iOS entry point are the same function:
+The desktop `main` and the Android/iOS entry point call the same function:
 
 ```rust
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
+#[cfg_attr(any(android, ios), tauri::mobile_entry_point)]
 pub fn run() { /* ... */ }
 ```
 
-Platform differences are handled with `cfg` gates and graceful degradation rather than forks — e.g. PTY and serial support are desktop-only, and on Android the OS keychain isn't available so the secret store falls back to the database.
+HarmonyOS uses a separate build workspace with pinned Tauri/Wry/Tao patches and native adapters, while sharing the Rust business code and Svelte frontend. The other platforms keep the upstream framework dependencies. Separate phone and PC HAPs include the same common HAR runtime; Huawei AppGallery distributes only the HAP for the device. The HAPs do not include the desktop CLI or JetBrains server.
+
+Layout follows window or container width. Native features such as local terminals, serial ports, file access and additional windows use backend-reported capabilities. Rust's `linux`, `macos`, `windows`, `android`, `ios` and `ohos` conditions select different native implementations; the `linux` condition excludes OHOS. Phone versus PC is determined at runtime inside the HarmonyOS adapter, not by separate Rust OS targets.
 
 ## Crate selection, and the prices we paid
 
@@ -76,26 +78,28 @@ If you adopt a fast-moving crypto-heavy crate, budget for this. The payoff is re
 
 **TLS: `reqwest` with `rustls-tls`, not `native-tls`.** The AI assistant makes HTTPS calls to whatever model endpoint you configure; choosing rustls keeps OpenSSL out of the build entirely, which keeps Windows and mobile cross-compiles boring (the good kind).
 
-**Secrets and backup.** Credentials live in the OS keychain via `keyring` v3, wired per-target so each platform uses its native backend:
+**Secrets and backup.** Credentials are encrypted in the local database. The master key uses the platform keychain when available, with `keyring` v3 wired per-target:
 
 ```toml
-[target.'cfg(target_os = "macos")'.dependencies]
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 keyring = { version = "3", features = ["apple-native"] }
 [target.'cfg(target_os = "windows")'.dependencies]
 keyring = { version = "3", features = ["windows-native"] }
-[target.'cfg(target_os = "linux")'.dependencies]
+[target.'cfg(all(target_os = "linux", not(target_env = "ohos")))'.dependencies]
 keyring = { version = "3", features = ["sync-secret-service", "crypto-rust"] }
 ```
 
+HarmonyOS uses Asset Store Kit through its native adapter. If a new installation has no usable system key store, the master key is stored in the application's data directory; an existing installation never silently switches its chosen backend.
+
 Encrypted config backup is plain, boring RustCrypto — `argon2` (Argon2id) to derive a key, `chacha20poly1305` for the AEAD, `getrandom` for salts and nonces, and `zeroize` to wipe the in-process passphrase cache on drop. No hand-rolled crypto.
 
-**Terminal and serial.** `portable-pty` drives the local shell on desktop. Serial console is a third byte-stream alongside SSH and PTY via `serialport` — which on Linux needs `libudev-dev` at build time, uses IOKit on macOS and Win32 on Windows. One flag we needed (`IXANY`) isn't exposed by the crate, so on Unix we drop to raw `termios` through `libc`.
+**Terminal and serial.** `portable-pty` drives the local shell on macOS, Windows and Linux. HarmonyOS PCs expose a local terminal only after a sandbox capability probe succeeds. The shared serial interface uses `serialport` on macOS, Windows and Linux — which on Linux needs `libudev-dev` at build time, uses IOKit on macOS and Win32 on Windows — and public system serial APIs on HarmonyOS PCs. Serial options follow the active backend's capabilities. One flag we needed (`IXANY`) isn't exposed by `serialport`, so its Unix backend uses raw `termios` through `libc`.
 
 A couple more deliberate picks: `tree-sitter` + `tree-sitter-bash` for shell-aware parsing of command structure, and `regex` + `regex-syntax` — the latter so we can reject a redaction rule whose pattern can match zero-width *at save time* (a `minimum_len() == 0` pattern replaces at every position, which is catastrophic over-redaction).
 
 ## Tauri 2: the good parts and the sharp edges
 
-Tauri gave us one UI codebase across five targets. The sharp edges were worth writing down.
+The shared frontend runs across all supported platforms; HarmonyOS adds a separately maintained framework port. The sharp edges were worth writing down.
 
 **1. Build a window from an `async` command, or deadlock on Windows.** Creating a second window from a synchronous command deadlocks on Windows (`WebviewWindowBuilder::build()`, see wry#583). The command that opens a tab in a new window carries a comment that it MUST stay `async`:
 
@@ -115,4 +119,4 @@ One design stance that paid off: when the keychain backend is marked as availabl
 
 ---
 
-RSSH is MIT-licensed and the issue tracker is open. If pure-Rust SSH, Tauri across five targets, or local-first AI ops tooling is your thing, contributions and bug reports are welcome: <https://github.com/rssh-org/rssh>.
+RSSH is MIT-licensed and the issue tracker is open. If pure-Rust SSH, cross-platform native adapters, or local-first AI ops tooling is your thing, contributions and bug reports are welcome: <https://github.com/rssh-org/rssh>.

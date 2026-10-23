@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>RSSH - SSH Connection Manager with AI Ops Diagnose</title>
     <meta name="description"
-          content="Cross-platform SSH client with AI-assisted ops diagnose, command block colors, keychain-backed credential security, and multi-device sync. Desktop GUI + CLI for macOS, Windows, Linux, Android."/>
+          content="SSH client with AI triage, command blocks and encrypted sync. Available on macOS, Windows, Linux, Android, iOS and HarmonyOS phones and PCs."/>
     <meta name="keywords" content="ssh client, ssh manager, ai ops, sftp client, terminal, command blocks, ssh gui, ssh keychain, ssh sync"/>
     <meta name="author" content="ofcoder"/>
     <meta name="theme-color" content="#0a0c0b"/>
@@ -14,7 +14,7 @@
 
     <meta property="og:site_name" content="RSSH"/>
     <meta property="og:title" content="RSSH - SSH Connection Manager with AI Ops Diagnose"/>
-    <meta property="og:description" content="Cross-platform SSH client with AI-assisted ops diagnose, command block colors, keychain-backed credential security, and multi-device sync."/>
+    <meta property="og:description" content="SSH client with AI triage, command blocks and encrypted sync. HarmonyOS phone and PC editions are now available in Huawei AppGallery."/>
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="https://rssh.ofcoder.com/"/>
     <meta property="og:image" content="https://rssh.ofcoder.com/og-card.svg"/>
@@ -23,7 +23,7 @@
     <meta property="og:locale:alternate" content="zh_CN"/>
     <meta name="twitter:card" content="summary_large_image"/>
     <meta name="twitter:title" content="RSSH - SSH Connection Manager with AI Ops Diagnose"/>
-    <meta name="twitter:description" content="Cross-platform SSH client with AI-assisted ops diagnose, command block colors, keychain-backed credential security, and multi-device sync."/>
+    <meta name="twitter:description" content="SSH client with AI triage, command blocks and encrypted sync. HarmonyOS phone and PC editions are now available in Huawei AppGallery."/>
     <meta name="twitter:image" content="https://rssh.ofcoder.com/og-card.svg"/>
 
     <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%230b0f16"/><path d="M14 20h36M14 32h22M14 44h28" stroke="%234a6cf7" stroke-width="5" stroke-linecap="round"/><path d="M44 32l6 6-6 6" stroke="%234cb88a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>'/>
@@ -38,7 +38,7 @@
       "image": "https://rssh.ofcoder.com/og-card.svg",
       "applicationCategory": "DeveloperApplication",
       "applicationSubCategory": "SSH Client",
-      "operatingSystem": "macOS, Windows, Linux, Android",
+      "operatingSystem": "macOS, Windows, Linux, Android, iOS, HarmonyOS (phone and PC)",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -376,6 +376,15 @@
             gap: 10px;
             flex-wrap: wrap;
         }
+
+        .hero-release {
+            margin: 22px auto 0;
+            max-width: 560px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .hero-release a { color: inherit; text-underline-offset: 3px; }
 
         /* Download count inside buttons — inherits the button ink, dimmed */
         .dl-count {
@@ -1022,6 +1031,15 @@
 
         .chip.ghost b { color: var(--text); font-weight: 500; }
 
+        .store-note {
+            max-width: 580px;
+            margin: 28px auto 0;
+            color: var(--muted);
+            text-align: center;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
         /* ---------- footer ---------- */
 
         .footer {
@@ -1160,6 +1178,9 @@
             </a>
         </div>
     </div>
+
+    <p class="hero-release">Now on HarmonyOS phones and PCs.<br/>
+        <a href="https://appgallery.huawei.com/app/detail?id=com.rssh.app&amp;channelId=SHARE&amp;source=appshare" target="_blank" rel="noopener">Get RSSH from Huawei AppGallery.</a></p>
 
     <div class="devices" aria-label="RSSH running on a Mac, an iPad and an iPhone">
         <div class="ipad">
@@ -1391,15 +1412,15 @@
                 <div class="feature rv">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.5h2" stroke-linecap="round"/></svg>
                     <div>
-                        <h3>Mobile keybar</h3>
-                        <p>Modifier lock and extension keys built for thumbs on Android.</p>
+                        <h3>Compact keybar</h3>
+                        <p>Ctrl, Alt and navigation keys in narrow windows, on every platform.</p>
                     </div>
                 </div>
                 <div class="feature rv">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 5l6 7-6 7M13 17h6" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <div>
                         <h3>Local terminal</h3>
-                        <p>zsh, bash, and PowerShell detected automatically.</p>
+                        <p>Open a local shell on supported devices.</p>
                     </div>
                 </div>
                 <div class="feature rv">
@@ -1436,8 +1457,10 @@
                 <details class="faq">
                     <summary>Which platforms are supported?</summary>
                     <div class="faq-a"><p>macOS (Apple Silicon and Intel), Windows, Linux (deb, rpm,
-                        AppImage), and Android. An iOS build is maintained by the community. The desktop
-                        app and the CLI share one database, so both stay in sync.</p></div>
+                        AppImage), Android, iOS, and HarmonyOS phones and PCs. Both HarmonyOS editions
+                        are available in Huawei AppGallery. On macOS, Windows and Linux, the desktop
+                        app and the CLI share one database. Layout follows window width;
+                        available features depend on the device.</p></div>
                 </details>
                 <details class="faq">
                     <summary>How does sync work?</summary>
@@ -1477,8 +1500,8 @@
             <div class="sec-head">
                 <p class="eyebrow rv">Download</p>
                 <h2 class="rv">Free, open source, MIT licensed.</h2>
-                <p class="sec-sub rv">Grab the latest release for your platform — desktop and Android on
-                    GitHub, iOS on the App Store.</p>
+                <p class="sec-sub rv">macOS, Windows, Linux and Android on GitHub, iOS on the App Store,
+                    and HarmonyOS phones and PCs in Huawei AppGallery.</p>
             </div>
             <div class="dl-chips rv">
                 <a class="chip" data-asset="-macos-aarch64.dmg" href="https://github.com/rssh-org/rssh/releases/latest" target="_blank" rel="noopener">
@@ -1496,10 +1519,19 @@
                 <a class="chip" href="https://apps.apple.com/sg/app/rssh/id6787936118" target="_blank" rel="noopener">
                     <b>iOS</b><span>App Store</span><span class="arrow">↓</span>
                 </a>
+                <a class="chip" href="https://appgallery.huawei.com/app/detail?id=com.rssh.app&amp;channelId=SHARE&amp;source=appshare" target="_blank" rel="noopener">
+                    <b>HarmonyOS Phone</b><span>AppGallery</span><span class="arrow">↓</span>
+                </a>
+                <a class="chip" href="https://appgallery.huawei.com/app/detail?id=com.rssh.app&amp;channelId=SHARE&amp;source=appshare" target="_blank" rel="noopener">
+                    <b>HarmonyOS PC</b><span>AppGallery</span><span class="arrow">↓</span>
+                </a>
                 <a class="chip ghost" href="https://github.com/rssh-org/rssh/releases/latest" target="_blank" rel="noopener">
                     <b>All releases</b><span class="arrow">→</span>
                 </a>
             </div>
+            <p class="store-note rv">HarmonyOS phone and PC editions require HarmonyOS 5 or later.
+                Open Huawei AppGallery on your device and search for <strong>RSSH</strong>
+                to install or update.</p>
         </div>
     </section>
 </main>

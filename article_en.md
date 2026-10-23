@@ -147,13 +147,15 @@ Not given top billing, but each one pulls its weight:
 - SFTP browsing: Cmd+O to summon, drag-and-drop upload/download.
 - Command snippets: Cmd+S to summon a reusable command library.
 - Port forwarding: local / remote, real-time traffic stats.
-- Cross-platform: macOS (Intel + Apple Silicon), Windows, Linux (deb/rpm/AppImage), Android.
+- Cross-platform: macOS (Intel + Apple Silicon), Windows, Linux (deb/rpm/AppImage), Android, iOS, and HarmonyOS phones and PCs.
 
 ---
 
 ## Download
 
 The [Releases](https://github.com/rssh-org/rssh/releases) page provides macOS / Windows / Linux / Android installers.
+
+iOS is available on the App Store. HarmonyOS phone and PC editions are now available in [Huawei AppGallery](https://appgallery.huawei.com/app/detail?id=com.rssh.app&channelId=SHARE&source=appshare): search for **RSSH** on your device to install the matching edition. All installation options are listed on the [website](https://rssh.ofcoder.com/#download).
 
 MIT license. No login, no subscription, no ads, no telemetry toggle — because there's no telemetry at all.
 
