@@ -1,11 +1,11 @@
 /*
  * docs/scenes.js — self-contained "mock rssh" demo scenes for the site.
  *
- * Ported 1:1 from the welcome screen (src/lib/components/welcome/Scene*.svelte):
- * same markup, same CSS, same beat schedules — driven by a tiny vanilla
- * player instead of Svelte state. Each scene mounts into its placeholder:
+ * The original scenes mirror the welcome screen; MCP and plugins extend
+ * the same markup, scoped CSS and beat-schedule player. Each scene mounts
+ * into its placeholder:
  *
- *     <figure class="rv" data-scene="ai|blocks|discovery|sync|cli"></figure>
+ *     <figure class="rv" data-scene="ai|blocks|mcp|discovery|cli|plugins|sync"></figure>
  *
  * Scenes play while visible, reset when scrolled away, loop with a short
  * hold, and settle to their final state under prefers-reduced-motion.
@@ -167,7 +167,9 @@
             position: relative;
             overflow: hidden;
         }
-        .sc-ai .term-pane {
+        .sc-ai .term-pane,
+        .sc-mcp .mcp-local,
+        .sc-mcp .mcp-terminal {
             flex: 1;
             padding: 16px 18px;
             font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
@@ -179,14 +181,14 @@
             flex-direction: column;
             gap: 10px;
         }
-        .sc-ai .ln { white-space: pre-wrap; }
-        .sc-ai .ln.out { color: #b8bcc8; }
+        .sc-ai .ln, .sc-mcp .ln { white-space: pre-wrap; }
+        .sc-ai .ln.out, .sc-mcp .ln.out { color: #b8bcc8; }
         .sc-ai .ln.out.warn { color: #f0c674; }
         .sc-ai .block.app { display: none; }
         .sc-ai.st-approved .block.app { display: flex; animation: ln-app-in 320ms ease both; }
         @keyframes ln-app-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
         .sc-ai .ln .hot { color: #ff6b6b; font-weight: 700; }
-        .sc-ai .prompt { color: var(--success); margin-right: 6px; }
+        .sc-ai .prompt, .sc-mcp .mcp-prompt { color: var(--success); margin-right: 6px; }
         .sc-ai .cur-blink { color: var(--accent); animation: blink 1s steps(1, start) infinite; }
 
         .sc-ai .ai-pane {
@@ -868,6 +870,8 @@
         .sc-sync.s-fanout .c5 { stroke-dashoffset: 0; stroke: var(--success); transition-delay: 60ms; }
         .sc-sync.s-fanout .c6 { stroke-dashoffset: 0; stroke: var(--success); transition-delay: 120ms; }
         .sc-sync.s-fanout .c7 { stroke-dashoffset: 0; stroke: var(--success); transition-delay: 180ms; }
+        .sc-sync.s-fanout .c8 { stroke-dashoffset: 0; stroke: var(--success); transition-delay: 240ms; }
+        .sc-sync.s-fanout .c9 { stroke-dashoffset: 0; stroke: var(--success); transition-delay: 300ms; }
 
         .sc-sync .enc-label {
             fill: var(--warning);
@@ -1015,8 +1019,8 @@
 
         .sc-sync .platform {
             right: 4%;
-            width: 11%;
-            min-width: 96px;
+            width: 14%;
+            min-width: 128px;
             padding: 6px 10px;
             flex-direction: row;
             align-items: center;
@@ -1048,10 +1052,12 @@
         }
         .sc-sync .node-label-sm { font-size: 11px; color: var(--text); letter-spacing: 0.3px; }
 
-        .sc-sync .p-win { top: 17%; transform: translate(0, -50%); }
-        .sc-sync .p-mac { top: 37%; transform: translate(0, -50%); }
-        .sc-sync .p-lin { top: 63%; transform: translate(0, -50%); }
-        .sc-sync .p-and { top: 83%; transform: translate(0, -50%); }
+        .sc-sync .p-win { top: 12%; transform: translate(0, -50%); }
+        .sc-sync .p-mac { top: 27%; transform: translate(0, -50%); }
+        .sc-sync .p-lin { top: 42%; transform: translate(0, -50%); }
+        .sc-sync .p-and { top: 58%; transform: translate(0, -50%); }
+        .sc-sync .p-ios { top: 73%; transform: translate(0, -50%); }
+        .sc-sync .p-ohos { top: 88%; transform: translate(0, -50%); }
 
         .sc-sync .node-icon {
             color: inherit;
@@ -1092,32 +1098,46 @@
             100% { opacity: 0; left: 53%; top: 50%; }
         }
         .sc-sync .doc.d-out-1, .sc-sync .doc.d-out-2,
-        .sc-sync .doc.d-out-3, .sc-sync .doc.d-out-4 {
+        .sc-sync .doc.d-out-3, .sc-sync .doc.d-out-4,
+        .sc-sync .doc.d-out-5, .sc-sync .doc.d-out-6 {
             left: 53%; top: 50%; transform: translate(-50%, -50%);
         }
         .sc-sync.s-fanout .d-out-1 { animation: doc-out-1 1100ms cubic-bezier(0.5, 0, 0.5, 1) 0ms forwards; }
         .sc-sync.s-fanout .d-out-2 { animation: doc-out-2 1100ms cubic-bezier(0.5, 0, 0.5, 1) 120ms forwards; }
         .sc-sync.s-fanout .d-out-3 { animation: doc-out-3 1100ms cubic-bezier(0.5, 0, 0.5, 1) 240ms forwards; }
         .sc-sync.s-fanout .d-out-4 { animation: doc-out-4 1100ms cubic-bezier(0.5, 0, 0.5, 1) 360ms forwards; }
+        .sc-sync.s-fanout .d-out-5 { animation: doc-out-5 1100ms cubic-bezier(0.5, 0, 0.5, 1) 480ms forwards; }
+        .sc-sync.s-fanout .d-out-6 { animation: doc-out-6 1100ms cubic-bezier(0.5, 0, 0.5, 1) 600ms forwards; }
         @keyframes doc-out-1 {
             0%   { opacity: 0; left: 53%; top: 50%; }
             10%  { opacity: 1; }
-            100% { opacity: 0; left: 85%; top: 17%; }
+            100% { opacity: 0; left: 82%; top: 12%; }
         }
         @keyframes doc-out-2 {
             0%   { opacity: 0; left: 53%; top: 50%; }
             10%  { opacity: 1; }
-            100% { opacity: 0; left: 85%; top: 37%; }
+            100% { opacity: 0; left: 82%; top: 27%; }
         }
         @keyframes doc-out-3 {
             0%   { opacity: 0; left: 53%; top: 50%; }
             10%  { opacity: 1; }
-            100% { opacity: 0; left: 85%; top: 63%; }
+            100% { opacity: 0; left: 82%; top: 42%; }
         }
         @keyframes doc-out-4 {
             0%   { opacity: 0; left: 53%; top: 50%; }
             10%  { opacity: 1; }
-            100% { opacity: 0; left: 85%; top: 83%; }
+            100% { opacity: 0; left: 82%; top: 58%; }
+        }
+
+        @keyframes doc-out-5 {
+            0%   { opacity: 0; left: 53%; top: 50%; }
+            10%  { opacity: 1; }
+            100% { opacity: 0; left: 82%; top: 73%; }
+        }
+        @keyframes doc-out-6 {
+            0%   { opacity: 0; left: 53%; top: 50%; }
+            10%  { opacity: 1; }
+            100% { opacity: 0; left: 82%; top: 88%; }
         }
 
         /* ── scene: cli ────────────────────────────────────────────── */
@@ -1277,6 +1297,217 @@
         @keyframes gui-fade { to { opacity: 1; } }
         .sc-cli .gln.out { color: var(--text-sub); }
 
+        /* Terminal plugins: the shell stays put while tools join it. */
+        .rssh-scene.sc-plugins .stage { aspect-ratio: auto; max-height: none; min-height: 500px; zoom: 1; }
+        .sc-plugins .mock-app { min-height: 440px; }
+        .sc-plugins .app-title { font-size: 12px; }
+        .sc-plugins .plugin-tabs {
+            display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+            border-bottom: 1px solid var(--surface); font-size: 12px;
+        }
+        .sc-plugins .plugin-tab { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+        .sc-plugins .plugin-tab .ic { color: var(--success); }
+        .sc-plugins .plugin-tools { display: flex; gap: 6px; margin-left: auto; }
+        .sc-plugins .plugin-toggle {
+            display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px;
+            border: 1px solid var(--surface); border-radius: 5px; color: var(--text-sub);
+        }
+        .sc-plugins.st-panel .plugin-panel-toggle,
+        .sc-plugins.st-strip .plugin-strip-toggle { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); }
+        .sc-plugins .plugin-workspace { display: grid; grid-template-columns: minmax(0, 1fr); flex: 1; min-height: 0; }
+        .sc-plugins.st-panel .plugin-workspace { grid-template-columns: minmax(0, 1fr) 280px; }
+        .sc-plugins .plugin-terminal {
+            min-width: 0; min-height: 325px; padding: 26px 24px;
+            font: 13px/1.8 'SF Mono', Menlo, Consolas, monospace;
+        }
+        .sc-plugins .plugin-command { display: flex; gap: 9px; margin-bottom: 6px; overflow-wrap: anywhere; }
+        .sc-plugins .plugin-prompt, .sc-plugins .plugin-running { color: var(--success); }
+        .sc-plugins .plugin-output { color: var(--text-sub); overflow-wrap: anywhere; }
+        .sc-plugins .plugin-command.next { margin-top: 23px; }
+        .sc-plugins .plugin-monitor { display: none; min-width: 0; background: var(--bg); border-left: 1px solid var(--surface); }
+        .sc-plugins.st-panel .plugin-monitor { display: block; animation: plugin-enter 350ms ease-out both; }
+        .sc-plugins .plugin-monitor-title {
+            display: flex; align-items: center; justify-content: space-between; padding: 11px 12px;
+            font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--surface);
+        }
+        .sc-plugins .plugin-live { display: flex; align-items: center; gap: 5px; font-weight: 400; color: var(--text-sub); }
+        .sc-plugins .plugin-live::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--success); }
+        .sc-plugins .plugin-metric { padding: 9px 12px 5px; border-bottom: 1px solid var(--surface); }
+        .sc-plugins .plugin-metric-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; }
+        .sc-plugins .plugin-metric-head span { color: var(--text-sub); }
+        .sc-plugins .plugin-metric-head b { font: 12px/1.4 'SF Mono', Menlo, Consolas, monospace; }
+        .sc-plugins .plugin-spark { display: block; width: 100%; height: 30px; color: var(--accent); overflow: hidden; }
+        .sc-plugins .plugin-spark path { fill: none; stroke: currentColor; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+        .sc-plugins .plugin-spark .secondary { color: var(--success); opacity: .7; }
+        .sc-plugins .plugin-disk { position: relative; display: flex; justify-content: space-between; margin: 10px 12px; padding: 4px 6px; font-size: 11px; border: 1px solid var(--surface); border-radius: 3px; isolation: isolate; }
+        .sc-plugins .plugin-disk::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 37%; background: var(--accent-soft); z-index: -1; }
+        .sc-plugins .plugin-strip { display: none; align-items: center; gap: 20px; min-height: 49px; padding: 6px 16px; background: var(--bg); border-top: 1px solid var(--surface); }
+        .sc-plugins.st-strip .plugin-strip { display: flex; animation: plugin-enter 300ms ease-out both; }
+        .sc-plugins .plugin-readouts { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--text-sub); font: 11px/1.5 'SF Mono', Menlo, Consolas, monospace; }
+        .sc-plugins .plugin-readouts b { font-weight: 500; color: var(--text); }
+        .sc-plugins .plugin-companion { display: flex; align-items: center; gap: 10px; margin-left: auto; flex: none; }
+        .sc-plugins .plugin-cat { display: block; width: 54px; height: 33px; overflow: visible; }
+        .sc-plugins .cat-outline { fill: var(--text); }
+        .sc-plugins .cat-fur { fill: var(--accent); }
+        .sc-plugins .cat-pink { fill: var(--purple); }
+        .sc-plugins .cat-eyes { fill: var(--bg); display: none; }
+        .sc-plugins .cat-sleep { fill: none; stroke: var(--bg); stroke-width: 1; }
+        .sc-plugins .plugin-quip { visibility: hidden; opacity: 0; padding: 5px 8px; border: 1px solid var(--surface); border-radius: 5px; font: 11px/1.4 'SF Mono', Menlo, Consolas, monospace; white-space: nowrap; }
+        .sc-plugins.st-awake .cat-eyes { display: block; }
+        .sc-plugins.st-awake .cat-sleep { display: none; }
+        .sc-plugins.st-awake .plugin-cat { animation: plugin-cat-hop 500ms ease-out; }
+        .sc-plugins.st-awake .plugin-quip { visibility: visible; opacity: 1; animation: plugin-enter 250ms ease-out both; }
+        .sc-plugins .mock-cursor { left: 0; top: 0; transition-property: transform, opacity; transition-duration: 700ms; will-change: auto; }
+        .sc-plugins .mock-cursor.visible { will-change: transform; }
+        @keyframes plugin-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes plugin-cat-hop { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-7px); } }
+        @media (max-width: 760px) {
+            .sc-plugins .stage { zoom: 1; }
+            .sc-plugins.st-panel .plugin-workspace { grid-template-columns: minmax(0, 1fr) 230px; }
+            .sc-plugins .plugin-terminal { padding: 18px 16px; }
+            .sc-plugins .plugin-strip { gap: 8px; }
+        }
+        @media (max-width: 560px) {
+            .rssh-scene.sc-plugins .stage { min-height: 670px; }
+            .sc-plugins .mock-app { min-height: 380px; }
+            .sc-plugins .app-header { padding: 10px; }
+            .sc-plugins .dot { width: 8px; height: 8px; }
+            .sc-plugins .dots { gap: 4px; }
+            .sc-plugins .plugin-tabs { gap: 6px; padding: 10px; }
+            .sc-plugins .plugin-toggle { padding: 6px; gap: 4px; }
+            .sc-plugins .plugin-tools { gap: 4px; }
+            .sc-plugins.st-panel .plugin-workspace { grid-template-columns: minmax(0, 1fr); }
+            .sc-plugins .plugin-terminal { min-height: 235px; font-size: 12px; }
+            .sc-plugins .plugin-command.next { margin-top: 14px; }
+            .sc-plugins .plugin-monitor { border-left: 0; border-top: 1px solid var(--surface); }
+            .sc-plugins .plugin-metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .sc-plugins .plugin-metric { padding: 8px 10px 4px; }
+            .sc-plugins .plugin-metric-head { align-items: flex-start; flex-direction: column; gap: 1px; }
+            .sc-plugins .plugin-spark { height: 26px; }
+            .sc-plugins .plugin-strip { flex-wrap: wrap; padding: 10px; gap: 8px; }
+            .sc-plugins .plugin-readouts { width: 100%; justify-content: space-between; gap: 5px; }
+            .sc-plugins .plugin-companion { margin-left: 0; }
+        }
+
+        /* ── scene: MCP — local code meets a live RSSH session ────── */
+        .rssh-scene.sc-mcp { width: min(1270px, 94vw); }
+        .rssh-scene.sc-mcp .stage {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+            gap: 18px;
+            aspect-ratio: auto;
+            max-height: none;
+            zoom: 1;
+        }
+        .sc-mcp .mock-app { min-width: 0; min-height: 540px; }
+        .sc-mcp .app-title { letter-spacing: 0; }
+        .sc-mcp .dots { gap: 4px; }
+        .sc-mcp .dot { width: 8px; height: 8px; }
+        .sc-mcp .mcp-local, .sc-mcp .mcp-terminal { overflow-wrap: anywhere; }
+        .sc-mcp .mcp-path, .sc-mcp .mcp-muted { color: var(--text-sub); }
+        .sc-mcp .mcp-caret { color: var(--purple); }
+        .sc-mcp.st-launch .mcp-shell .mcp-caret,
+        .sc-mcp.st-context .mcp-question .mcp-caret { display: none; }
+        .sc-mcp .mcp-cli { display: none; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .sc-mcp.st-launch .mcp-cli { display: flex; }
+        .sc-mcp .mcp-cli-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .sc-mcp .mcp-cli-head strong { font-size: 16px; color: var(--text); }
+        .sc-mcp .mcp-cli-head span { color: var(--text-dim); font-size: 10px; }
+        .sc-mcp .mcp-question { min-height: 40px; padding-left: 10px; border-left: 2px solid var(--accent); }
+        .sc-mcp .mcp-context { color: var(--text-sub); }
+        .sc-mcp .mcp-context code { color: var(--text); }
+        .sc-mcp .mcp-calls { display: flex; flex-direction: column; gap: 10px; }
+        .sc-mcp .mcp-call { border-left: 1px solid var(--surface); padding-left: 10px; }
+        .sc-mcp .mcp-call strong { color: var(--purple); font-weight: 500; }
+        .sc-mcp .mcp-call span { display: block; color: var(--text-sub); font-size: 11px; }
+        .sc-mcp .mcp-wait { color: var(--warning); }
+        .sc-mcp .mcp-connected { display: none; color: var(--success); }
+        .sc-mcp.st-allowed .mcp-wait { display: none; }
+        .sc-mcp.st-allowed .mcp-connected { display: inline; }
+        .sc-mcp .mcp-result { color: var(--text-sub); border-top: 1px solid var(--surface); padding-top: 12px; }
+        .sc-mcp .mcp-result strong { display: block; color: var(--success); margin-bottom: 3px; }
+        .sc-mcp .mcp-context, .sc-mcp .mcp-list,
+        .sc-mcp .mcp-open, .sc-mcp .mcp-run, .sc-mcp .mcp-result {
+            opacity: 0;
+            transform: translateY(5px);
+            transition: opacity 250ms ease, transform 250ms ease;
+        }
+        .sc-mcp.st-context .mcp-context,
+        .sc-mcp.st-found .mcp-list, .sc-mcp.st-request .mcp-open,
+        .sc-mcp.st-review .mcp-run, .sc-mcp.st-result .mcp-result { opacity: 1; transform: none; }
+        .sc-mcp .mcp-rssh-body { flex: 1; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); overflow: hidden; }
+        .sc-mcp .mcp-terminal { grid-area: 1 / 1 / 2 / 3; }
+        .sc-mcp.st-panel .mcp-terminal { grid-column: 1; }
+        .sc-mcp .mcp-terminal-command, .sc-mcp .mcp-terminal-prompt { display: none; }
+        .sc-mcp.st-run .mcp-terminal-command { display: inline; }
+        .sc-mcp.st-run .mcp-terminal-caret { display: none; }
+        .sc-mcp.st-logs .mcp-terminal-prompt { display: flex; }
+        .sc-mcp .mcp-ai-pane {
+            grid-area: 1 / 2;
+            min-width: 0;
+            z-index: 1;
+            visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, #20212a 0%, #1c1d24 100%);
+            border-left: 1px solid color-mix(in srgb, var(--purple) 25%, transparent);
+            transform: translateX(100%);
+            transition: transform 550ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .sc-mcp.st-panel .mcp-ai-pane { visibility: visible; transform: none; }
+        .sc-mcp .mcp-ai-head { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--surface); font: 11px "SF Mono", Menlo, Consolas, monospace; }
+        .sc-mcp .mcp-ai-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--purple); }
+        .sc-mcp .mcp-ai-head small { margin-left: auto; color: var(--text-sub); font-size: 10px; }
+        .sc-mcp .mcp-thread { display: flex; flex-direction: column; gap: 14px; padding: 16px; flex: 1; }
+        .sc-mcp .mcp-task { font-size: 12px; color: var(--text-sub); line-height: 1.6; }
+        .sc-mcp .mcp-task strong { display: block; color: var(--text); font-weight: 500; }
+        .sc-mcp .mcp-consent, .sc-mcp .mcp-command-card {
+            padding: 14px;
+            border: 1px solid color-mix(in srgb, var(--purple) 35%, transparent);
+            border-radius: 8px;
+            background: color-mix(in srgb, var(--purple) 8%, transparent);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .sc-mcp .mcp-consent { display: none; }
+        .sc-mcp.st-consent:not(.st-allowed) .mcp-consent { display: block; animation: gui-fade 250ms both; }
+        .sc-mcp .mcp-consent p { margin: 0 0 12px; }
+        .sc-mcp .mcp-actions { display: flex; justify-content: flex-end; align-items: center; gap: 14px; }
+        .sc-mcp .mcp-action { display: inline-flex; padding: 5px 12px; border-radius: 5px; background: var(--accent); color: var(--white); font-size: 11px; }
+        .sc-mcp .mcp-command-card { display: none; }
+        .sc-mcp.st-review .mcp-command-card { display: block; animation: gui-fade 250ms both; }
+        .sc-mcp .mcp-tool-head { display: flex; align-items: center; gap: 8px; font: 11px "SF Mono", Menlo, Consolas, monospace; }
+        .sc-mcp .mcp-tool-tag { color: var(--white); background: var(--purple); padding: 2px 5px; border-radius: 3px; font-size: 9px; }
+        .sc-mcp .mcp-command-card code { display: block; margin: 12px 0 8px; padding: 9px; border-radius: 4px; background: rgba(0, 0, 0, 0.25); font-size: 11px; overflow-wrap: anywhere; }
+        .sc-mcp .mcp-command-card p { color: var(--text-sub); margin: 0 0 12px; }
+        .sc-mcp .mcp-command-card .mcp-action { color: var(--success); background: color-mix(in srgb, var(--success) 12%, transparent); border: 1px solid color-mix(in srgb, var(--success) 45%, transparent); }
+        .sc-mcp .mcp-complete { display: none; margin-left: auto; color: var(--success); font-size: 10px; }
+        .sc-mcp.st-run .mcp-command-card { border-color: color-mix(in srgb, var(--success) 40%, transparent); }
+        .sc-mcp.st-run .mcp-command-card .mcp-actions { display: none; }
+        .sc-mcp.st-logs .mcp-complete { display: inline; }
+        .sc-mcp .mcp-logs { display: none; font: 11px/1.8 "SF Mono", Menlo, Consolas, monospace; color: var(--text-sub); overflow-wrap: anywhere; }
+        .sc-mcp .mcp-terminal .mcp-logs { font: inherit; }
+        .sc-mcp .mcp-logs strong { color: var(--warning); font-weight: 500; }
+        .sc-mcp.st-logs .mcp-logs { display: block; animation: gui-fade 250ms both; }
+        .sc-mcp .mcp-control { visibility: hidden; margin-top: auto; font-size: 11px; color: var(--text-sub); }
+        .sc-mcp.st-allowed .mcp-control { visibility: visible; }
+        .sc-mcp .mcp-control span { display: block; color: var(--success); margin-bottom: 4px; }
+        .sc-mcp .mcp-control u { text-underline-offset: 4px; }
+        .sc-mcp .mock-cursor { left: 0; top: 0; transition-property: transform, opacity; transition-duration: 600ms; will-change: auto; }
+        .sc-mcp .mock-cursor.visible { will-change: transform; }
+        .sc-mcp.st-run .mock-cursor { opacity: 0; }
+        @media (max-width: 760px) {
+            .rssh-scene.sc-mcp .stage { grid-template-columns: 1fr; gap: 14px; }
+            .sc-mcp .mock-app { min-height: 510px; }
+            .sc-mcp .mcp-thread { padding: 14px; }
+        }
+
+        @media (max-width: 560px) {
+            .sc-mcp .mcp-rssh-body { grid-template-columns: minmax(0, 1fr); }
+            .sc-mcp .mcp-terminal { grid-area: 1 / 1; }
+            .sc-mcp .mcp-ai-pane { grid-area: 2 / 1; border-left: 0; border-top: 1px solid var(--surface); }
+        }
+
         /* ── responsive + reduced motion ───────────────────────────── */
 
         @media (max-width: 900px) {
@@ -1354,6 +1585,144 @@
     `;
 
     const MARKUP = {
+        plugins: `
+            <div class="mock-app">
+                <div class="app-header">
+                    <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+                    <div class="app-title">rssh — prod-api</div><span class="header-spacer"></span>
+                </div>
+                <div class="plugin-tabs">
+                    <span class="plugin-tab"><svg class="ic" width="15" height="15"><use href="#i-terminal"/></svg>prod-api</span>
+                    <div class="plugin-tools">
+                        <span class="plugin-toggle plugin-panel-toggle"><svg class="ic" width="14" height="14" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg>Sidebar</span>
+                        <span class="plugin-toggle plugin-strip-toggle"><svg class="ic" width="14" height="14" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15h18"/></svg>Strip</span>
+                    </div>
+                </div>
+                <div class="plugin-workspace">
+                    <div class="plugin-terminal">
+                        <div class="plugin-command"><span class="plugin-prompt">$</span>systemctl status api</div>
+                        <div class="plugin-output">api.service — API server</div>
+                        <div class="plugin-running">● active (running)</div>
+                        <div class="plugin-output">PID 1482 · 7 workers</div>
+                        <div class="plugin-command next"><span class="plugin-prompt">$</span>curl -I localhost:8080</div>
+                        <div class="plugin-output">HTTP/1.1 200 OK</div>
+                        <div class="plugin-command next"><span class="plugin-prompt">$</span>_</div>
+                    </div>
+                    <div class="plugin-monitor">
+                        <div class="plugin-monitor-title">System monitor<span class="plugin-live">Live</span></div>
+                        <div class="plugin-metric-grid">
+                            <div class="plugin-metric">
+                                <div class="plugin-metric-head"><span>CPU</span><b data-plugin-cpu>23%</b></div>
+                                <svg class="plugin-spark" viewBox="0 0 240 30" preserveAspectRatio="none"><path d="M0 24 12 24 24 22 36 23 48 12 60 18 72 16 84 24 96 23 108 20 120 9 132 18 144 16 156 22 168 18 180 21 192 15 204 20 216 19 228 20 240 18"/></svg>
+                            </div>
+                            <div class="plugin-metric">
+                                <div class="plugin-metric-head"><span>Memory</span><b>3.4 / 8 GB</b></div>
+                                <svg class="plugin-spark" viewBox="0 0 240 30" preserveAspectRatio="none"><path d="M0 21 20 21 40 20 60 20 80 19 100 19 120 17 140 18 160 17 180 16 200 16 220 15 240 15"/></svg>
+                            </div>
+                            <div class="plugin-metric">
+                                <div class="plugin-metric-head"><span>Load avg</span><b>0.42</b></div>
+                                <svg class="plugin-spark" viewBox="0 0 240 30" preserveAspectRatio="none"><path d="M0 25 24 23 48 24 72 19 96 21 120 17 144 21 168 18 192 19 216 16 240 19"/></svg>
+                            </div>
+                            <div class="plugin-metric">
+                                <div class="plugin-metric-head"><span>Network ↓ / ↑</span><b>1.2 M / 84 K</b></div>
+                                <svg class="plugin-spark" viewBox="0 0 240 30" preserveAspectRatio="none"><path d="M0 24 15 24 30 12 45 20 60 22 75 8 90 13 105 21 120 18 135 24 150 14 165 20 180 6 195 15 210 20 225 12 240 14"/><path class="secondary" d="M0 27 20 27 40 23 60 26 80 24 100 26 120 24 140 27 160 22 180 25 200 23 220 25 240 24"/></svg>
+                            </div>
+                        </div>
+                        <div class="plugin-disk"><span>/</span><span>37 / 100 GB</span></div>
+                    </div>
+                </div>
+                <div class="plugin-strip">
+                    <div class="plugin-readouts"><span>CPU <b data-plugin-cpu>23%</b></span><span>MEM <b>42%</b></span><span>LOAD <b>0.42</b></span></div>
+                    <div class="plugin-companion">
+                        <svg class="plugin-cat" viewBox="0 0 18 11" shape-rendering="crispEdges">
+                            <path class="cat-outline" d="M3 0h2v1h-2zM11 0h2v1h-2zM3 1h1v1h-1zM5 1h1v1h-1zM10 1h1v1h-1zM12 1h1v1h-1zM3 2h1v1h-1zM6 2h4v1h-4zM12 2h1v1h-1zM2 3h1v1h-1zM13 3h1v1h-1zM2 4h1v1h-1zM13 4h1v1h-1zM2 5h1v1h-1zM13 5h2v1h-2zM2 6h1v1h-1zM13 6h4v1h-4zM3 7h1v1h-1zM7 7h2v1h-2zM12 7h1v1h-1zM14 7h1v1h-1zM2 8h1v1h-1zM5 8h6v1h-6zM13 8h1v1h-1zM1 9h1v1h-1zM14 9h1v1h-1zM2 10h2v1h-2zM5 10h2v1h-2zM9 10h2v1h-2zM12 10h2v1h-2z"/>
+                            <path class="cat-fur" d="M4 2h2v1h-2zM10 2h2v1h-2zM3 3h10v1h-10zM3 4h1v1h-1zM6 4h4v1h-4zM12 4h1v1h-1zM3 5h10v1h-10zM3 6h4v1h-4zM9 6h4v1h-4zM4 7h3v1h-3zM9 7h3v1h-3zM3 8h2v1h-2zM11 8h2v1h-2zM2 9h12v1h-12zM4 4h2v1h-2zM10 4h2v1h-2z"/>
+                            <path class="cat-pink" d="M4 1h1v1h-1zM11 1h1v1h-1zM7 6h2v1h-2z"/>
+                            <path class="cat-eyes" d="M4 4h2v1h-2zM10 4h2v1h-2z"/>
+                            <path class="cat-sleep" d="M4 5h2M10 5h2"/>
+                        </svg>
+                        <span class="plugin-quip">$ sudo pet me</span>
+                    </div>
+                </div>
+            </div>
+            ${CURSOR}
+        `,
+        mcp: `
+            <div class="mock-app mcp-agent">
+                <div class="app-header">
+                    <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+                    <div class="app-title">rssh — local</div>
+                    <span></span>
+                </div>
+                <div class="mcp-local">
+                    <div class="mcp-path">~/projects/auth-api <span class="mcp-prompt">main</span></div>
+                    <div class="block">
+                        <div class="block-body">
+                            <div class="ln mcp-shell"><span class="mcp-prompt">$</span> <span data-mcp-launch></span><span class="mcp-caret">▌</span></div>
+                            <div class="mcp-cli">
+                                <div class="mcp-cli-head"><strong>›_ Codex</strong><span>local workspace</span></div>
+                                <div class="mcp-question"><span data-mcp-prompt></span><span class="mcp-caret">▌</span></div>
+                                <div class="mcp-context">Read <code>src/auth/login.ts</code><br/>Checking how expired tokens are handled.</div>
+                                <div class="mcp-calls">
+                                    <div class="mcp-call mcp-list"><strong>rssh.list_sessions</strong><span>↳ prod-api · SSH · connected</span></div>
+                                    <div class="mcp-call mcp-open"><strong>rssh.open_session</strong><span>↳ prod-api · <em class="mcp-wait">awaiting consent</em><em class="mcp-connected">control allowed</em></span></div>
+                                    <div class="mcp-call mcp-run"><strong>rssh.run_command</strong><span>↳ Find login events for user u_1042</span></div>
+                                </div>
+                                <div class="mcp-result"><strong>Expired token, not a bad password.</strong>AUTH_401 matches login.ts. The refresh path is missing before retry.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mock-app">
+                <div class="app-header">
+                    <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+                    <div class="app-title">rssh — prod-api</div>
+                    <span></span>
+                </div>
+                <div class="mcp-rssh-body">
+                    <div class="mcp-terminal">
+                        <div class="block lit" style="--bar: var(--success)">
+                            <span class="bar" aria-hidden="true"></span>
+                            <div class="block-body">
+                                <div class="ln"><span class="mcp-prompt">$</span> <span>uptime</span></div>
+                                <div class="ln out">up 14 days · load avg 0.42</div>
+                            </div>
+                        </div>
+                        <div class="block lit mcp-terminal-run" style="--bar: var(--accent)">
+                            <span class="bar"></span>
+                            <div class="block-body">
+                                <div class="ln"><span class="mcp-prompt">$</span> <span class="mcp-terminal-command">grep 'user=u_1042' /var/log/auth-api.log | tail -3</span><span class="mcp-caret mcp-terminal-caret">▌</span></div>
+                                <div class="mcp-logs"><div>10:42:01 user=u_1042 login_failed <strong>AUTH_401</strong></div><div>10:42:01 user=u_1042 reason=<strong>token_expired</strong></div><div>10:42:03 user=u_1042 retry=<strong>token_expired</strong></div></div>
+                            </div>
+                        </div>
+                        <div class="block lit mcp-terminal-prompt" style="--bar: var(--accent)">
+                            <span class="bar" aria-hidden="true"></span>
+                            <div class="block-body"><div class="ln"><span class="mcp-prompt">$</span> <span class="mcp-caret">▌</span></div></div>
+                        </div>
+                    </div>
+                    <aside class="mcp-ai-pane">
+                        <div class="mcp-ai-head"><span class="mcp-ai-dot"></span><strong>AI Diagnose</strong><small>MCP · Codex</small></div>
+                        <div class="mcp-thread">
+                            <div class="mcp-task"><strong>Investigate login failures · u_1042</strong>External agent · prod-api</div>
+                            <div class="mcp-consent">
+                                <p>Allow the local agent to control this terminal?</p>
+                                <div class="mcp-actions"><span class="mcp-muted">Deny</span><span class="mcp-action" data-mcp-allow>Allow control</span></div>
+                            </div>
+                            <div class="mcp-command-card">
+                                <div class="mcp-tool-head"><span class="mcp-tool-tag">tool_use</span><strong>run_command</strong><span class="mcp-complete">completed</span></div>
+                                <code>grep 'user=u_1042' /var/log/auth-api.log | tail -3</code>
+                                <p>Read this user's recent login events.<br/>Read-only · no file changes</p>
+                                <div class="mcp-actions"><span class="mcp-action" data-mcp-approve>Approve &amp; run</span></div>
+                                <div class="mcp-logs"><div>10:42:01 user=u_1042 login_failed <strong>AUTH_401</strong></div><div>10:42:01 user=u_1042 reason=<strong>token_expired</strong></div><div>10:42:03 user=u_1042 retry=<strong>token_expired</strong></div></div>
+                            </div>
+                            <div class="mcp-control"><span>Agent connected · commands recorded</span><u>End conversation &amp; revoke control</u></div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+            ${CURSOR}
+        `,
         ai: `
             <div class="mock-app">
                 <div class="app-header">
@@ -1589,10 +1958,12 @@
                 <path class="connect c1" d="M 160 300 H 190 V 150 H 220" fill="none"/>
                 <path class="connect c2" d="M 160 300 H 190 V 450 H 220" fill="none"/>
                 <path class="connect c3 encrypted" d="M 380 450 H 415 V 300 H 450" fill="none"/>
-                <path class="connect c4" d="M 610 300 H 730 V 102 H 850" fill="none"/>
-                <path class="connect c5" d="M 610 300 H 730 V 222 H 850" fill="none"/>
-                <path class="connect c6" d="M 610 300 H 730 V 378 H 850" fill="none"/>
-                <path class="connect c7" d="M 610 300 H 730 V 498 H 850" fill="none"/>
+                <path class="connect c4" d="M 610 300 H 730 V 72 H 820" fill="none"/>
+                <path class="connect c5" d="M 610 300 H 730 V 162 H 820" fill="none"/>
+                <path class="connect c6" d="M 610 300 H 730 V 252 H 820" fill="none"/>
+                <path class="connect c7" d="M 610 300 H 730 V 348 H 820" fill="none"/>
+                <path class="connect c8" d="M 610 300 H 730 V 438 H 820" fill="none"/>
+                <path class="connect c9" d="M 610 300 H 730 V 528 H 820" fill="none"/>
                 <text class="enc-label" x="425" y="378">ENCRYPTED</text>
             </svg>
 
@@ -1684,6 +2055,15 @@
                 <div class="node-label-sm">Android</div>
             </div>
 
+            <div class="node platform p-ios" style="--pf: var(--text-sub);">
+                <div class="pf-tile">i</div>
+                <div class="node-label-sm">iOS</div>
+            </div>
+            <div class="node platform p-ohos" style="--pf: var(--accent);">
+                <div class="pf-tile">H</div>
+                <div class="node-label-sm">HarmonyOS</div>
+            </div>
+
             <div class="doc d-encrypt" aria-hidden="true">
                 <svg viewBox="0 0 14 16" width="16" height="18">
                     <path d="M2 1 H10 L13 4 V15 H2 Z" fill="#1c1d24" stroke="#7dd3fc" stroke-width="1.2" stroke-linejoin="round"/>
@@ -1714,6 +2094,20 @@
                 </svg>
             </div>
             <div class="doc d-out-4" aria-hidden="true">
+                <svg viewBox="0 0 14 16" width="14" height="16">
+                    <path d="M2 1 H10 L13 4 V15 H2 Z" fill="#1c1d24" stroke="#7dd3fc" stroke-width="1.2" stroke-linejoin="round"/>
+                    <line x1="4" y1="6" x2="11" y2="6" stroke="#7dd3fc" stroke-width="1.2"/>
+                    <line x1="4" y1="9" x2="11" y2="9" stroke="#7dd3fc" stroke-width="1.2"/>
+                </svg>
+            </div>
+            <div class="doc d-out-5" aria-hidden="true">
+                <svg viewBox="0 0 14 16" width="14" height="16">
+                    <path d="M2 1 H10 L13 4 V15 H2 Z" fill="#1c1d24" stroke="#7dd3fc" stroke-width="1.2" stroke-linejoin="round"/>
+                    <line x1="4" y1="6" x2="11" y2="6" stroke="#7dd3fc" stroke-width="1.2"/>
+                    <line x1="4" y1="9" x2="11" y2="9" stroke="#7dd3fc" stroke-width="1.2"/>
+                </svg>
+            </div>
+            <div class="doc d-out-6" aria-hidden="true">
                 <svg viewBox="0 0 14 16" width="14" height="16">
                     <path d="M2 1 H10 L13 4 V15 H2 Z" fill="#1c1d24" stroke="#7dd3fc" stroke-width="1.2" stroke-linejoin="round"/>
                     <line x1="4" y1="6" x2="11" y2="6" stroke="#7dd3fc" stroke-width="1.2"/>
@@ -1793,6 +2187,88 @@
     };
 
     const SCENES = {
+        plugins: {
+            loop: 11000,
+            beats(fig) {
+                const stage = fig.querySelector('.stage');
+                const cursor = fig.querySelector('.mock-cursor');
+                // The stage uses zoom: 1 at every breakpoint. Measure only
+                // settled layouts, then move the cursor with a transform.
+                const moveTo = (selector) => () => {
+                    const target = stage.querySelector(selector);
+                    const frame = stage.getBoundingClientRect();
+                    const rect = target.getBoundingClientRect();
+                    const x = rect.left - frame.left + rect.width / 2;
+                    const y = rect.top - frame.top + rect.height / 2;
+                    cursor.style.transform = 'translate(' + x.toFixed(1) + 'px, ' + y.toFixed(1) + 'px)';
+                };
+                return [
+                    [350, () => { cursor.style.transition = ''; cursor.classList.add('visible'); }],
+                    [550, moveTo('.plugin-panel-toggle')],
+                    [1450, () => cursor.classList.add('clicking')],
+                    [1650, () => { cursor.classList.remove('clicking'); fig.classList.add('st-panel'); }],
+                    [2700, () => fig.querySelectorAll('[data-plugin-cpu]').forEach((value) => { value.textContent = '31%'; })],
+                    [3400, moveTo('.plugin-strip-toggle')],
+                    [4300, () => cursor.classList.add('clicking')],
+                    [4500, () => { cursor.classList.remove('clicking'); fig.classList.add('st-strip'); }],
+                    [5700, () => fig.querySelectorAll('[data-plugin-cpu]').forEach((value) => { value.textContent = '23%'; })],
+                    [6000, moveTo('.plugin-cat')],
+                    [6900, () => cursor.classList.add('clicking')],
+                    [7100, () => { cursor.classList.remove('clicking'); fig.classList.add('st-awake'); }],
+                    [7800, () => cursor.classList.remove('visible')],
+                ];
+            },
+            reset(fig) {
+                fig.classList.remove('st-panel', 'st-strip', 'st-awake');
+                fig.querySelectorAll('[data-plugin-cpu]').forEach((value) => { value.textContent = '23%'; });
+                const cursor = fig.querySelector('.mock-cursor');
+                cursor.classList.remove('visible', 'clicking');
+                cursor.style.transition = 'none';
+                cursor.style.transform = 'translate(24px, 68px)';
+            },
+        },
+        mcp: {
+            loop: 18000,
+            beats(fig) {
+                const stage = fig.querySelector('.stage');
+                const cursor = fig.querySelector('.mock-cursor');
+                const moveTo = (selector) => () => {
+                    const bounds = stage.getBoundingClientRect();
+                    const target = stage.querySelector(selector).getBoundingClientRect();
+                    cursor.style.transform = 'translate(' + (target.left - bounds.left + target.width / 2) + 'px, ' + (target.top - bounds.top + target.height / 2) + 'px)';
+                    cursor.style.transition = '';
+                    cursor.classList.add('visible');
+                };
+                return [
+                    ...typeBeats(500, 110, 'codex', (text) => { fig.querySelector('[data-mcp-launch]').textContent = text; }),
+                    [1400, () => fig.classList.add('st-launch')],
+                    ...typeBeats(1800, 28, 'Use local code to investigate login failures for user u_1042.', (text) => { fig.querySelector('[data-mcp-prompt]').textContent = text; }),
+                    [3900, () => fig.classList.add('st-context')],
+                    [4700, () => fig.classList.add('st-found')],
+                    [5900, () => fig.classList.add('st-request')],
+                    [6400, () => fig.classList.add('st-panel')],
+                    [7000, () => fig.classList.add('st-consent')],
+                    [7400, moveTo('[data-mcp-allow]')],
+                    [8400, () => cursor.classList.add('clicking')],
+                    [8600, () => { cursor.classList.remove('clicking'); fig.classList.add('st-allowed'); }],
+                    [9400, () => fig.classList.add('st-review')],
+                    [10100, moveTo('[data-mcp-approve]')],
+                    [11100, () => cursor.classList.add('clicking')],
+                    [11300, () => { cursor.classList.remove('clicking'); fig.classList.add('st-run'); }],
+                    [12400, () => fig.classList.add('st-logs')],
+                    [13700, () => fig.classList.add('st-result')],
+                ];
+            },
+            reset(fig) {
+                fig.classList.remove('st-launch', 'st-context', 'st-found', 'st-request', 'st-panel', 'st-consent', 'st-allowed', 'st-review', 'st-run', 'st-logs', 'st-result');
+                fig.querySelector('[data-mcp-launch]').textContent = '';
+                fig.querySelector('[data-mcp-prompt]').textContent = '';
+                const cursor = fig.querySelector('.mock-cursor');
+                cursor.classList.remove('visible', 'clicking');
+                cursor.style.transition = 'none';
+                cursor.style.transform = 'translate(24px, 68px)';
+            },
+        },
         ai: {
             loop: 9600,
             beats(fig) {
@@ -2031,7 +2507,7 @@
                     [2100, () => fig.classList.add('s-encrypting')],
                     [3300, () => fig.classList.add('s-stored')],
                     [3700, () => fig.classList.add('s-fanout')],
-                    [5100, () => fig.classList.add('s-lit')],
+                    [5500, () => fig.classList.add('s-lit')],
                 ];
             },
             reset(fig) {
@@ -2083,7 +2559,7 @@
     function start(fig, reduceMotion) {
         stopTimers(fig);
         const def = SCENES[fig.dataset.scene];
-        if (!def) return;
+        if (!def || fig.closest('[hidden]')) return;
         def.reset(fig);
         if (reduceMotion) {
             fig.classList.add('reduce');
@@ -2108,9 +2584,11 @@
                 const fig = entry.target;
                 const def = SCENES[fig.dataset.scene];
                 if (!def) return;
-                if (entry.isIntersecting) {
+                const wasVisible = fig._sceneVisible;
+                fig._sceneVisible = entry.isIntersecting && !fig.closest('[hidden]');
+                if (fig._sceneVisible && !wasVisible) {
                     start(fig, reduceMotion);
-                } else {
+                } else if (!fig._sceneVisible) {
                     stopTimers(fig);
                     def.reset(fig);
                 }
@@ -2121,9 +2599,44 @@
             const name = fig.dataset.scene;
             if (!MARKUP[name]) return;
             fig.classList.add('rssh-scene', 'sc-' + name);
-            fig.innerHTML = '<div class="stage">' + MARKUP[name].trim() + '</div>';
+            fig.innerHTML = '<div class="stage" aria-hidden="true">' + MARKUP[name].trim() + '</div>';
             observer.observe(fig);
         });
+
+        const slides = [...document.querySelectorAll('[data-ai-slide]')];
+        if (!slides.length) return;
+        const navigation = document.querySelector('.ai-switcher');
+        const label = navigation.querySelector('[data-ai-label]');
+        const labels = ['Built-in AI', 'MCP'];
+        let active = 0;
+        const select = (index) => {
+            active = (index + slides.length) % slides.length;
+            slides.forEach((slide, i) => {
+                const fig = slide.querySelector('[data-scene]');
+                observer.unobserve(fig);
+                stopTimers(fig);
+                fig._sceneVisible = false;
+                SCENES[fig.dataset.scene].reset(fig);
+                slide.hidden = i !== active;
+            });
+            label.textContent = labels[active] + ' · ' + (active + 1) + ' / ' + slides.length;
+            observer.observe(slides[active].querySelector('[data-scene]'));
+        };
+        navigation.querySelector('[data-ai-prev]').addEventListener('click', () => select(active - 1));
+        navigation.querySelector('[data-ai-next]').addEventListener('click', () => select(active + 1));
+        navigation.addEventListener('keydown', (event) => {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            event.preventDefault();
+            select(active + (event.key === 'ArrowRight' ? 1 : -1));
+        });
+        const selectAnchor = () => {
+            const index = slides.findIndex((slide) => '#' + slide.id === window.location.hash);
+            if (index < 0) return;
+            select(index);
+            document.getElementById('ai').scrollIntoView();
+        };
+        window.addEventListener('hashchange', selectAnchor);
+        selectAnchor();
     }
 
     if (document.readyState === 'loading') {
